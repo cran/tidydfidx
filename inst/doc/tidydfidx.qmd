@@ -1,0 +1,571 @@
+---
+title: tidydfidx
+author: Yves Croissant
+date: today
+date-format: long
+number-sections: true
+output: 
+  pdf_document:
+    number-sections: true
+  html_document:
+    toc: true
+    toc_float: true
+bibliography: ../inst/REFERENCES.bib
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{dfidx and tibbles}
+  %\VignetteEngine{quarto::pdf}
+---
+
+In some situations, series from a data frame have a natural
+two-dimensional (tabular) representation because each observation can
+be uniquely characterized by a combination of two indexes. Two major
+cases of these situations in applied econometrics are:
+
+- panel data, where the same individuals are observed for several time
+  periods,
+- random utility models, where each observation describes the features
+  of an alternative among a set of alternatives for a given choice
+  situation.
+
+The idea of **dfidx** is to keep in the same object the data and
+the information about its structure. A `dfidx` object is a
+data frame with an `idx` column, which is a data frame that
+contains the series that define the indexes.
+
+From version 0.1-2, **dfidx** doesn't depend anymore on some of
+**tidyverse** packages. If you want to use **dfidx** along with
+**tidyverse** in order to use tibbles instead of ordinary data frames
+and **dplyr**'s verbs, you should use the new **tidydfidx** package
+instead of **dfidx**.
+
+This vignette supersede the preceding vignette of the **dfidx**
+package by showing the advantages of creating `dfidx` objects from a
+tibble and not from an ordinary data frame.^[The advantage of
+attaching the **dplyr** package [@WICK:FRAN:23] is that the
+**magrittr**'s pipe [@BACH:WICK:22] and functions from the **tibble**
+package [@MULL:WICK:23] are exported.] It also introduces a new vector
+interface to define the indexes.
+
+
+# Basic use of the `dfidx` function
+
+The `dfidx` package is loaded using:
+
+```{r }
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, widht = 50)
+old_options <- options(width = 70,
+                       tibble.print_max = 3,
+                       tibble.print_min = 3
+)
+```
+
+<!-- ```{r } -->
+<!-- #| label: load_dfidx -->
+<!-- sources <- FALSE -->
+<!-- if (! sources){ -->
+<!--     library(dfidx) -->
+<!-- } else { -->
+<!--     library(dplyr);library(Formula);library(pillar);library(vctrs);library(glue) -->
+<!--     z <- lapply(system("ls ~/YvesPro2/R_github/dfidx/dfidx/R/*.R", intern = TRUE), source) -->
+<!--     load("~/YvesPro2/R_github/dfidx/dfidx/data/munnell.rda") -->
+<!--     load("~/YvesPro2/R_github/dfidx/dfidx/data/munnell_wide.rda") -->
+<!-- }    -->
+<!-- ``` -->
+
+
+```{r }
+#| label: load_dfidx
+library(tidydfidx)
+```
+
+
+We also attach the **dplyr** package [@WICK:FRAN:23], which exports
+functions from the **tibble** [@MULL:WICK:23] and the **margrittr**
+[@BACH:WICK:22] packages because we'll use
+throughout this vignette tibbles and not ordinary data frames and
+we'll show how **dplyr**'s verbs can be used with `dfidx` objects
+thanks to appropriate methods.
+
+```{r}
+#| label: load_dplyr
+library(dplyr)
+```
+
+To illustrate the features of **dfidx**, we'll use the `munnell` data
+set [@MUNN:90] that is used in @BALT:13's famous book and is part of
+the **plm** package as `Produc`. It contains several economic series
+for American states from 1970 to 1986. We've added to the initial data
+set a `president` series which indicates the name of the American
+president in power for the given year.
+
+```{r}
+#| label: print.tibble
+data("munnell", package = "dfidx")
+munnell <- munnell %>% as_tibble
+```
+
+The two indexes are `state` and `year` and both are nested in another
+variable: `state` in `region` and `year` in `president`.  A `dfidx`
+object is created with the `dfidx` function: the first argument should
+be a data frame (or a tibble) and the second argument `idx` is used to
+indicate the indexes. As, in the `munnell` data set, the first two
+columns contain the two indexes, the `idx` argument is not mandatory
+and a `dfidx` can be obtained from the `munnell` tibble simply by
+using:
+
+```{r}
+#| label: print.dfidx
+munnell %>% dfidx
+```
+
+The resulting object is of class `dfidx` and is a tibble with an `idx`
+column, which is a tibble containing the two indexes.  Note that the
+two indexes are now longer standalone series in the resulting tibble,
+because the default value of the `drop.index` argument is `TRUE`. The
+header of the tibble indicates the names and the cardinal of the two
+indexes. It also indicated whether the data set is balanced ie, in
+this panel data context, whether all the states are observed for the
+same set of years (which is the case for the `munnell` data set).
+The `idx` column can be retrieved using the `idx` function:
+
+```{r }
+#| label: extract_idx
+munnell %>% dfidx %>% idx
+```
+
+If the first two columns don't contain the indexes, the `idx` argument
+should be set. If the observations are ordered first by the first
+index and then by the second one and if the data set is *balanced*,
+`idx` can be an integer, the number of distinct values of the first
+index:
+
+```{r }
+#| label: dfidx_integer
+munnell %>% dfidx(48)
+```
+
+Then the two indexes are created with the default names `id1` and
+`id2`. More relevant names can be indicated using the `idnames`
+argument and the values of the second index can be indicated, using
+the `levels` argument.
+
+```{r }
+#| label: dfidx_integer_pretty
+munnell %>% dfidx(48, idnames = c("state", "year"), levels = 1970:1986)
+```
+
+The `idx` argument can also be a character of length one or two. In
+the first case, only the first index is indicated:
+
+```{r }
+#| label: dfidx_one_index
+munnell %>% dfidx("state", idnames = c(NA, "date"), levels = 1970:1986)
+```
+
+Note that we've only provided a name for the second index, the `NA` in
+the first position of the `idnames` argument meaning that we want to
+keep the original name for the first index.
+Finally, if the `idx` argument is a character of length 2, it should
+contain the name of the two indexes.
+
+```{r }
+#| label: dfidx_two_indexes
+munnell %>% dfidx(c("state", "year"))
+```
+
+# More advanced use of `dfidx`
+
+## Nesting structure
+
+One or both of the indexes may be nested in another series. In this
+case, the `idx` argument is still a character of length two, but the
+nesting series is indicated as the name of the corresponding index:
+
+```{r}
+#| label: one_or_two_nests
+mn <- munnell %>% dfidx(c(region = "state", "year"))
+mn <- munnell %>% dfidx(c(region = "state", president = "year"))
+mn
+```
+
+The `idx` column is now a tibble containing the two indexes and the
+nesting variables.
+
+```{r}
+#| label: idx_two_nests
+mn %>% idx
+```
+
+## Customized the name and the position of the `idx` column
+
+By default, the column that contains the indexes is called `idx` and
+is the first column of the returned data frame. The position and the
+name of this column can be set using the `position` and `name`
+arguments:
+
+
+```{r position_name}
+dfidx(munnell, idx = c(region = "state", president = "year"),
+            name = "index", position = 4)
+```
+
+## Data frames in wide format
+
+`dfidx` can deal with data frames in wide format, i.e., for which each
+series for a given value of the second index is a column of the data
+frame. This is the case of the `munnell_wide` tibble that contains two
+series of the original data set (`gsp` and `unemp`).
+
+```{r}
+#| label: munnell_wide
+data("munnell_wide", package = "dfidx")
+munnell_wide <- munnell_wide %>% as_tibble
+```
+
+Each line is now an American state and, apart the indexes, there are
+now 34 series with names obtained by the concatenation of the name of
+the series and the year (for example `gsp_1988`). In this case a
+supplementary argument called `varying` should be provided. It is a
+vector of integers indicating the position of the columns that should
+be merged in the resulting long formatted data frame. The
+`stats::reshape` function is then used and the `sep` argument can be
+also provided to indicate the separating character in the names of the
+series (the default value being `"."`).
+
+```{r}
+#| label: varying
+#| eval: false
+munnell_wide %>% dfidx(varying = 3:36, sep = "_")
+```
+
+Better results can be obtained using the `idx` and `idnames` previously described:
+
+```{r}
+#| label: varying_pretty
+#| eval: false
+munnell_wide %>% dfidx(idx = c(region = "state"), varying = 3:36, 
+                       sep = "_", idnames = c(NA, "year"))
+```
+
+# Getting the indexes or their names
+
+The name (and the position) of the `idx` column can be obtained as a
+named integer (the integer being the position of the column and the
+name its name) using the `idx_name` function:
+
+```{r}
+#| label: idx_names
+#| collapse: true
+idx_name(mn)
+```
+
+To get the name of one of the indexes, the second argument, `n`, is
+set either to 1 or 2 to get the first or the second index, ignoring
+the nesting variables:
+
+```{r }
+#| label: one_idx
+#| collapse: true
+idx_name(mn, 2)
+idx_name(idx(mn), 2)
+```
+
+Not that `idx_name` can be in this case applied to a `dfidx` or to a
+`idx` object.  To get a nesting variable, the third argument, called
+`m`, is set to 2:
+
+```{r }
+#| label: nested_idx
+#| collapse: true
+idx_name(mn, 1, 1)
+idx_name(mn, 1, 2)
+```
+
+To extract one or all the indexes, the `idx` function is used. This
+function has already been encountered when one wants to extract the
+`idx` column of a `dfidx` object. 
+The  same `n` and `m` arguments as for the `idx_name` function can be
+used in order to extract a specific series. For example, to extract the
+region index, which nests the state index:
+
+```{r }
+#| collapse: true
+#| label: extract_index_with_idx
+id_index1 <- idx(mn, n = 1, m = 2)
+id_index2 <- idx(idx(mn), n = 1, m = 2)
+head(id_index1)
+identical(id_index1, id_index2)
+```
+
+# Data frames subsetting
+
+Subsets of data frames are obtained using the `[` and the `[[`
+operators. The former returns most of the time a data frame as the
+second one always returns a series.
+
+## Commands that return a data frame
+
+Consider first the use of `[`. If one argument is provided, it
+indicates the columns that should be selected. The result is always a
+data frame, even if a single column is selected. If two arguments are
+provided, the first one indicates the subset of lines and the second
+one the subset of columns that should be returned. If only one column
+is selected, the result depends on the value of the `drop`
+argument. If `TRUE`, a series is returned and if `FALSE`, a one series
+data frame is returned. An important difference between tibbles and
+ordinary data frames is that the default value of `drop` is `FALSE`
+for the former and `TRUE` for the later. Therefore, with tibbles, the
+use of `[` will always by default return a data frame. 
+
+A specific `dfidx` method is provided for one reason: the column
+that contains the indexes should be "sticky" (we borrow this idea from
+the `sf` package^[@PEBE:BIVA:23 and @PEBE:18.]), which means that it should be always returned while
+using the extractor operator, even if it is not explicitly selected.
+
+```{r}
+#| label: one_bracket
+mn[mn$unemp > 10, ]
+mn[mn$unemp > 10, c("highway", "utilities")]
+mn[mn$unemp > 10, "highway"]
+```
+
+All the previous commands extract the observations where the
+unemployment rate is greater than 10% and, in the first case all the
+series, in the second case two of them and in the third case only one
+series.
+
+## Commands that return a series
+
+A series can be extracted using any of the following commands:
+
+```{r }
+#| collapse: true
+#| label: return_series
+mn1 <- mn[, "highway", drop = TRUE]
+mn2 <- mn[["highway"]]
+mn3 <- mn$highway
+c(identical(mn1, mn2), identical(mn1, mn3))
+```
+
+The result is a `xseries` which inherits the `idx` column from the
+data frame it has been extracted from as an attribute :
+
+```{r }
+#| label: xseries
+mn1 %>% print(n = 3)
+class(mn1)
+idx(mn1) %>% print(n = 3)
+```
+
+Note that, except when `dfidx` hasn't been used with `drop.index =
+FALSE`, a series which defines the indexes is dropped from the data
+frame (but is one of the column of the `idx` column of the data
+frame). It can be therefore retrieved using:
+
+
+```{r}
+#| label: extract_index_1
+mn$idx$president %>% head
+```
+
+or
+
+```{r }
+#| label: extract_index_2
+idx(mn)$president %>% head
+```
+
+or more simply by applying the `$` operator as if the series were a
+stand-alone series in the data frame :
+
+```{r }
+#| label: extract_index_3
+mn$president %>% print(n = 3)
+```
+In this last case, the resulting series is a `xseries`, 
+*ie* it inherits the index data frame as an attribute.
+
+## User defined class for extracted series
+
+While creating the `dfidx`, a `pkg` argument can be indicated, so that
+the resulting `dfidx` object and its series are respectively of class
+`c("dfidx_pkg", "dfidx")` and `c("xseries_pkg", "xseries")` which enables the
+definition of special methods for `dfidx` and `xseries` objects. For
+example, consider the hypothetical **pnl** package for panel data:
+
+```{r }
+#| label: pkg_series
+#| collapse: true
+mn <- dfidx(munnell, idx = c(region = "state", president = "year"), 
+                                pkg = "pnl")
+mn1 <- mn$gsp
+class(mn)
+class(mn1)
+```
+For example, we want to define a `lag` method for `xseries_pnl`
+objects. While lagging there should be a `NA` not only on the first
+position of the resulting vector like for time-series, but each time
+we encounter a new individual. A minimal `lag` method could therefore be
+written as:
+
+```{r }
+#| label: pnl_seriex
+lag.xseries_pnl <- function(x, ...){
+    .idx <- idx(x)
+    class <- class(x)
+    x <- unclass(x)
+    id <- .idx[[1]]
+    lgt <- length(id)
+    lagid <- c("", id[- lgt])
+    sameid <- lagid ==  id
+    x <- c(NA, x[- lgt])
+    x[! sameid] <- NA
+    structure(x, class = class, idx = .idx)
+}
+lmn1 <- stats::lag(mn1)
+lmn1 %>% print(n = 3)
+class(lmn1)
+rbind(mn1, lmn1)[, 1:20]
+```
+
+Note the use of `stats::lag` instead of `lag` which ensures that the
+`stats::lag` function is used, even if the **dplyr** (or **tidyverse**)
+package is attached.
+
+# tidyverse
+
+## dplyr
+
+**dfidx** supports some of the verbs of **dplyr**, namely, for the
+current version:
+
+- `select` to select columns,
+- `filter` to select some rows using logical conditions,
+- `arrange` to sort the lines according to one or several variables,
+- `mutate` and `transmute` for creating new series,
+- `slice` to select some rows using their position.
+
+**dplyr**'s verbs don't work with `dfidx` objects for two main
+reasons:
+
+- the first one is that with most of the verbs (`select` is an
+  exception), the returned object is a `data.frame` (or a `tibble`)
+  and not a `dfidx`,
+- the second one is that the index column should be "sticky", which
+  means that it should be always returned, even while selecting a
+  subset of columns which doesn't include the index column or while
+  using `transmute`.
+
+Therefore, specific methods are provided for **dplyr**'s verb. The
+general strategy consists on:
+
+@. first save the original attributes of the argument (a `dfidx`
+  object),
+@. coerce to a data frame or a tibble using the `as.data.frame`
+  method, 
+@. use `dplyr`'s verb,
+@. add the column containing the index if necessary (i.e., while
+  using `transmute` or while `select`ing a subset of columns which
+  doesn't contain the index column),
+@. change some of the attributes if necessary, 
+@. attach the attributes to the data frame and returns the result.
+
+The following code illustrates the use of **dplyr**'s verbs applied to
+`dfidx` objects.
+
+```{r }
+#| label: dplyr_verbs
+select(mn, highway, utilities)
+arrange(mn, desc(unemp))
+mutate(mn, lgsp = log(gsp), lgsp2 = lgsp ^ 2)
+transmute(mn, lgsp = log(gsp), lgsp2 = lgsp ^ 2)
+filter(mn, unemp > 10, gsp > 150000)
+slice(mn, 1:3)
+mutate(mn, gsp = ifelse(gsp < 170000, 0, gsp))
+```
+
+To extract a series, the `pull` function can be used:
+
+```{r}
+#| label: pull
+mn %>% pull(utilities)
+```
+
+# Model building
+
+The two main steps in **R** in order to estimate a model are to use the
+`model.frame` function to construct a data frame, using a formula
+and a data frame and then to extract from it the matrix of
+covariates using the `model.matrix` function.
+
+## Model frame
+
+The default method of `model.frame` has as first two arguments
+`formula` and `data`. It returns a data frame with a `terms`
+attribute. Some other methods exist in the **stats** package, for
+example for `lm` and `glm` object with a first and main argument
+called `formula`. This is quite unusual and misleading as for most of
+the generic functions in **R**, the first argument is called either
+`x` or `object`.
+
+Another noticeable method for `model.frame` is provided by the
+**Formula** package and, in this case, the first argument is a `Formula`
+object, which is an extended formula which can contain several parts
+on the left and/or on the right hand side of the formula.
+
+We provide a `model.frame` method for `dfidx` objects, mainly
+because the `idx` column should be returned in the resulting
+data frame. This leads to an unusual order of the arguments, the
+data frame first and then the formula. The method then first extract
+(and subset if necessary the `idx` column), call the
+`formula`/`Formula` method and then add to the resulting data frame
+the `idx` column. The resulting data frame is a `dfidx` object.
+
+```{r}
+#| label: model_frame
+mf_mn <- mn %>% model.frame(gsp ~ utilities + highway | unemp | labor,
+                            subset = unemp > 10)
+mf_mn
+formula(mf_mn)
+```
+
+Note that the column that contains the indexes is at the end and not
+at the begining of the returned data frame. This is because the
+`stats::model.response` function, which is used to extract the
+response of a model and is not generic consider that the first column
+of the model frame is the response.
+
+## Model matrix
+
+`model.matrix` is a generic function and for the default method, the
+first two arguments are a `terms` object and a data frame. In `lm`,
+the `terms` attribute is extracted from the `model.frame` internally
+constructed using the `model.frame` function. This means that, at
+least in this context, `model.matrix` doesn't need a `formula`/`term`
+argument and a `data.frame`, but only a data frame returned by the
+model frame method, i.e., a data frame with a `terms` attribute.
+
+We use this idea for the `model.matrix` method for `dfidx` object; the
+only required argument is a `dfidx` returned by the `model.frame`
+function. The formula is then extracted from the `dfidx` and the
+`Formula` or default method is then called. The result is a matrix of
+class `dfidx_matrix`, with a printing method that allows the use of
+the `n` argument:
+
+```{r}
+#| label: model_matrix
+mf_mn %>% model.matrix(rhs = 1) %>% print(n = 5)
+mf_mn %>% model.matrix(rhs = 2:3) %>% print(n = 5)
+```
+
+
+
+```{r }
+#| include: false
+options(old_options)
+```
+
+# References
