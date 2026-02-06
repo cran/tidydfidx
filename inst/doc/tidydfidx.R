@@ -1,27 +1,25 @@
 ## -----------------------------------------------------------------------------
 #| label: setup
 #| include: false
+options(rmarkdown.html_vignette.check_title = FALSE)
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, widht = 50)
 old_options <- options(width = 70,
                        tibble.print_max = 3,
-                       tibble.print_min = 3
-)
+                       tibble.print_min = 3,
+                       dfidx.print_n = 3)
 
 
 ## -----------------------------------------------------------------------------
 #| label: load_dfidx
+#| message: false
 library(tidydfidx)
-
-
-## -----------------------------------------------------------------------------
-#| label: load_dplyr
 library(dplyr)
 
 
 ## -----------------------------------------------------------------------------
 #| label: print.tibble
 data("munnell", package = "dfidx")
-munnell <- munnell %>% as_tibble
+munnell <- as_tibble(munnell)
 
 
 ## -----------------------------------------------------------------------------
@@ -36,12 +34,12 @@ munnell %>% dfidx %>% idx
 
 ## -----------------------------------------------------------------------------
 #| label: dfidx_integer
-munnell %>% dfidx(48)
+munnell %>% dfidx(48L)
 
 
 ## -----------------------------------------------------------------------------
 #| label: dfidx_integer_pretty
-munnell %>% dfidx(48, idnames = c("state", "year"), levels = 1970:1986)
+munnell %>% dfidx(48L, idnames = c("state", "year"), levels = 1970:1986)
 
 
 ## -----------------------------------------------------------------------------
@@ -79,15 +77,13 @@ munnell_wide <- munnell_wide %>% as_tibble
 
 ## -----------------------------------------------------------------------------
 #| label: varying
-#| eval: false
-# munnell_wide %>% dfidx(varying = 3:36, sep = "_")
+munnell_wide %>% dfidx(varying = 3:36, sep = "_")
 
 
 ## -----------------------------------------------------------------------------
 #| label: varying_pretty
-#| eval: false
-# munnell_wide %>% dfidx(idx = c(region = "state"), varying = 3:36,
-#                        sep = "_", idnames = c(NA, "year"))
+munnell_wide %>% dfidx(idx = c(region = "state"), varying = 3:36, 
+                       sep = "_", idnames = c(NA, "year"))
 
 
 ## -----------------------------------------------------------------------------

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.655">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Yves Croissant">
+<meta name="dcterms.date" content="2026-02-06">
+
+<title>tidydfidx</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<link href="tidydfidx_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet">
+<link href="tidydfidx_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+
+
+<link rel="stylesheet" href="/home/yves/R/x86_64-pc-linux-gnu-library/4.5/quarto/rmarkdown/template/quarto_vignette/resources/vignette.css">
+<link rel="stylesheet" href="custom.css">
+</head>
+
+<body>
+
+
+<header id="title-block-header">
+<h1 class="title">tidydfidx</h1>
+<p class="author">Yves Croissant</p>
+
+<p class="date">February 6, 2026</p>
+</header>
+
+<!-- output:  -->
+<!--   pdf_document: -->
+<!--     number-sections: true -->
+<!--   html_document: -->
+<!--     toc: true -->
+<!--     toc_float: true -->
+<!-- output: -->
+<!--   rmarkdown::html_vignette: -->
+<!--   toc: true -->
+<p>In some situations, series from a data frame have a natural two-dimensional (tabular) representation because each observation can be uniquely characterized by a combination of two indexes. Two major cases of these situations in applied econometrics are:</p>
+<ul>
+<li>panel data, where the same individuals are observed for several time periods,</li>
+<li>random utility models, where each observation describes the features of an alternative among a set of alternatives for a given choice situation.</li>
+</ul>
+<p>The idea of <strong>dfidx</strong> is to keep in the same object the data and the information about its structure. A <code>dfidx</code> object is a data frame with an <code>idx</code> column, which is a data frame that contains the series that define the indexes.</p>
+<p>From version 0.1-2, <strong>dfidx</strong> doesn’t depend anymore on some of <strong>tidyverse</strong> packages. If you want to use <strong>dfidx</strong> along with <strong>tidyverse</strong> in order to use tibbles instead of ordinary data frames and <strong>dplyr</strong>’s verbs, you should use the new <strong>tidydfidx</strong> package instead of <strong>dfidx</strong>.</p>
+<p>This vignette supersede the preceding vignette of the <strong>dfidx</strong> package by showing the advantages of creating <code>dfidx</code> objects from a tibble and not from an ordinary data frame. It also introduces a new vector interface to define the indexes.</p>
+<h1 data-number="1" id="basic-use-of-the-dfidx-function"><span class="header-section-number">1</span> Basic use of the <code>dfidx</code> function</h1>
+<p>The <code>dfidx</code> package is loaded using:</p>
+<!-- ```{r } -->
+<!-- #| label: load_dfidx -->
+<!-- sources <- FALSE -->
+<!-- if (! sources){ -->
+<!--     library(dfidx) -->
+<!-- } else { -->
+<!--     library(dplyr);library(Formula);library(pillar);library(vctrs);library(glue) -->
+<!--     z <- lapply(system("ls ~/YvesPro2/R_github/dfidx/dfidx/R/*.R", intern = TRUE), source) -->
+<!--     load("~/YvesPro2/R_github/dfidx/dfidx/data/munnell.rda") -->
+<!--     load("~/YvesPro2/R_github/dfidx/dfidx/data/munnell_wide.rda") -->
+<!-- }    -->
+<!-- ``` -->
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidydfidx)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code></pre></div>
+</div>
+<p>We also attach the <strong>dplyr</strong> package <span class="citation" data-cites="WICK:FRAN:23">(Wickham et al. 2023)</span>, which exports functions from the <strong>tibble</strong> <span class="citation" data-cites="MULL:WICK:23">(Müller and Wickham 2023)</span> and the <strong>margrittr</strong> <span class="citation" data-cites="BACH:WICK:22">(Bache and Wickham 2022)</span> packages because we’ll use throughout this vignette tibbles and not ordinary data frames and we’ll show how <strong>dplyr</strong>’s verbs can be used with <code>dfidx</code> objects thanks to appropriate methods.</p>
+<p>To illustrate the features of <strong>dfidx</strong>, we’ll use the <code>munnell</code> data set <span class="citation" data-cites="MUNN:90">(Munnell 1990)</span> that is used in <span class="citation" data-cites="BALT:13">Baltagi (2013)</span>’ and is part of the <strong>plm</strong> package as <code>Produc</code>. It contains several economic series for American states from 1970 to 1986. We’ve added to the initial data set a <code>president</code> series which indicates the name of the American president in power for the given year. We convert it to a tibble:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"munnell"</span>, <span class="at">package =</span> <span class="st">"dfidx"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>munnell <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(munnell)</span></code></pre></div>
+</div>
+<p>The two indexes are <code>state</code> and <code>year</code> and both are nested in another variable: <code>state</code> in <code>region</code> and <code>year</code> in <code>president</code>. A <code>dfidx</code> object is created with the <code>dfidx</code> function: the first argument should be a data frame (or a tibble) and the second argument <code>idx</code> is used to indicate the indexes. As, in the <code>munnell</code> data set, the first two columns contain the two indexes, the <code>idx</code> argument is not mandatory and a <code>dfidx</code> can be obtained from the <code>munnell</code> tibble simply by using:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>munnell <span class="sc">%&gt;%</span> dfidx</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 11
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+  region  president publiccap highway water utilities privatecap   gsp
+  &lt;chr&gt;   &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt; &lt;int&gt;
+1 East-S… Nixon        15033.   7326. 1656.     6051.     35794. 28418
+2 East-S… Nixon        15502.   7526. 1721.     6255.     37300. 29375
+3 East-S… Nixon        15972.   7765. 1765.     6442.     38670. 31303
+# ℹ 813 more rows
+# ℹ 3 more variables: labor &lt;dbl&gt;, unemp &lt;dbl&gt;, idx &lt;idx&gt;</code></pre>
+</div>
+</div>
+<p>The resulting object is of class <code>dfidx</code> and is a tibble with an <code>idx</code> column, which is a tibble containing the two indexes. Note that the two indexes are now longer standalone series in the resulting tibble, because the default value of the <code>drop.index</code> argument is <code>TRUE</code>. The header of the tibble indicates the names and the cardinal of the two indexes. It also indicated whether the data set is balanced ie, in this panel data context, whether all the states are observed for the same set of years (which is the case for the <code>munnell</code> data set). The <code>idx</code> column can be retrieved using the <code>idx</code> function:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>munnell <span class="sc">%&gt;%</span> dfidx <span class="sc">%&gt;%</span> idx</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 2
+  state   year 
+  &lt;chr&gt;   &lt;fct&gt;
+1 Alabama 1970 
+2 Alabama 1971 
+3 Alabama 1972 
+# ℹ 813 more rows</code></pre>
+</div>
+</div>
+<p>If the first two columns don’t contain the indexes, the <code>idx</code> argument should be set. If the observations are ordered first by the first index and then by the second one and if the data set is <em>balanced</em>, <code>idx</code> can be an integer, the number of distinct values of the first index:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>munnell <span class="sc">%&gt;%</span> <span class="fu">dfidx</span>(48L)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 13
+# Index:    48 (id1) x 17 (id2)
+# Balanced: yes
+  state    year region     president publiccap highway water utilities
+  &lt;chr&gt;   &lt;int&gt; &lt;chr&gt;      &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;
+1 Alabama  1970 East-Sout… Nixon        15033.   7326. 1656.     6051.
+2 Alabama  1971 East-Sout… Nixon        15502.   7526. 1721.     6255.
+3 Alabama  1972 East-Sout… Nixon        15972.   7765. 1765.     6442.
+# ℹ 813 more rows
+# ℹ 5 more variables: privatecap &lt;dbl&gt;, gsp &lt;int&gt;, labor &lt;dbl&gt;,
+#   unemp &lt;dbl&gt;, idx &lt;idx&gt;</code></pre>
+</div>
+</div>
+<p>Then the two indexes are created with the default names <code>id1</code> and <code>id2</code>. More relevant names can be indicated using the <code>idnames</code> argument and the values of the second index can be indicated, using the <code>levels</code> argument.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>munnell <span class="sc">%&gt;%</span> <span class="fu">dfidx</span>(48L, <span class="at">idnames =</span> <span class="fu">c</span>(<span class="st">"state"</span>, <span class="st">"year"</span>), <span class="at">levels =</span> <span class="dv">1970</span><span class="sc">:</span><span class="dv">1986</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 11
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+  region  president publiccap highway water utilities privatecap   gsp
+  &lt;chr&gt;   &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt; &lt;int&gt;
+1 East-S… Nixon        15033.   7326. 1656.     6051.     35794. 28418
+2 East-S… Nixon        15502.   7526. 1721.     6255.     37300. 29375
+3 East-S… Nixon        15972.   7765. 1765.     6442.     38670. 31303
+# ℹ 813 more rows
+# ℹ 3 more variables: labor &lt;dbl&gt;, unemp &lt;dbl&gt;, idx &lt;idx&gt;</code></pre>
+</div>
+</div>
+<p>The <code>idx</code> argument can also be a character of length one or two. In the first case, only the first index is indicated:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>munnell <span class="sc">%&gt;%</span> <span class="fu">dfidx</span>(<span class="st">"state"</span>, <span class="at">idnames =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="st">"date"</span>), <span class="at">levels =</span> <span class="dv">1970</span><span class="sc">:</span><span class="dv">1986</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 12
+# Index:    48 (state) x 17 (date)
+# Balanced: yes
+   year region  president publiccap highway water utilities privatecap
+  &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+1  1970 East-S… Nixon        15033.   7326. 1656.     6051.     35794.
+2  1971 East-S… Nixon        15502.   7526. 1721.     6255.     37300.
+3  1972 East-S… Nixon        15972.   7765. 1765.     6442.     38670.
+# ℹ 813 more rows
+# ℹ 4 more variables: gsp &lt;int&gt;, labor &lt;dbl&gt;, unemp &lt;dbl&gt;, idx &lt;idx&gt;</code></pre>
+</div>
+</div>
+<p>Note that we’ve only provided a name for the second index, the <code>NA</code> in the first position of the <code>idnames</code> argument meaning that we want to keep the original name for the first index. Finally, if the <code>idx</code> argument is a character of length 2, it should contain the name of the two indexes.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>munnell <span class="sc">%&gt;%</span> <span class="fu">dfidx</span>(<span class="fu">c</span>(<span class="st">"state"</span>, <span class="st">"year"</span>))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 11
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+  region  president publiccap highway water utilities privatecap   gsp
+  &lt;chr&gt;   &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt; &lt;int&gt;
+1 East-S… Nixon        15033.   7326. 1656.     6051.     35794. 28418
+2 East-S… Nixon        15502.   7526. 1721.     6255.     37300. 29375
+3 East-S… Nixon        15972.   7765. 1765.     6442.     38670. 31303
+# ℹ 813 more rows
+# ℹ 3 more variables: labor &lt;dbl&gt;, unemp &lt;dbl&gt;, idx &lt;idx&gt;</code></pre>
+</div>
+</div>
+<h1 data-number="2" id="more-advanced-use-of-dfidx"><span class="header-section-number">2</span> More advanced use of <code>dfidx</code></h1>
+<h2 data-number="2.1" id="nesting-structure"><span class="header-section-number">2.1</span> Nesting structure</h2>
+<p>One or both of the indexes may be nested in another series. In this case, the <code>idx</code> argument is still a character of length two, but the nesting series is indicated as the name of the corresponding index:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mn <span class="ot">&lt;-</span> munnell <span class="sc">%&gt;%</span> <span class="fu">dfidx</span>(<span class="fu">c</span>(<span class="at">region =</span> <span class="st">"state"</span>, <span class="st">"year"</span>))</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>mn <span class="ot">&lt;-</span> munnell <span class="sc">%&gt;%</span> <span class="fu">dfidx</span>(<span class="fu">c</span>(<span class="at">region =</span> <span class="st">"state"</span>, <span class="at">president =</span> <span class="st">"year"</span>))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>mn</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 9
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+# Nesting:  state (region), year (president)
+  publiccap highway water utilities privatecap    gsp labor unemp
+      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;  &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+1    62201.  26836. 7670.    27696.    146286. 168627 4656.   6.2
+2    63096.  27300. 8005.    27791.    150855. 173767 4789.   6  
+3    63643.  27247. 8491.    27904.    156752. 173817 4880    5.5
+# ℹ 813 more rows
+# ℹ 1 more variable: idx &lt;idx&gt;</code></pre>
+</div>
+</div>
+<p>The <code>idx</code> column is now a tibble containing the two indexes and the nesting variables.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>mn <span class="sc">%&gt;%</span> idx</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 4
+  state    region             year  president
+  &lt;chr&gt;    &lt;chr&gt;              &lt;fct&gt; &lt;fct&gt;    
+1 Illinois East-North Central 1977  Carter   
+2 Illinois East-North Central 1978  Carter   
+3 Illinois East-North Central 1979  Carter   
+# ℹ 813 more rows</code></pre>
+</div>
+</div>
+<h2 data-number="2.2" id="customized-the-name-and-the-position-of-the-idx-column"><span class="header-section-number">2.2</span> Customized the name and the position of the <code>idx</code> column</h2>
+<p>By default, the column that contains the indexes is called <code>idx</code> and is the first column of the returned data frame. The position and the name of this column can be set using the <code>position</code> and <code>name</code> arguments:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dfidx</span>(munnell, <span class="at">idx =</span> <span class="fu">c</span>(<span class="at">region =</span> <span class="st">"state"</span>, <span class="at">president =</span> <span class="st">"year"</span>),</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">name =</span> <span class="st">"index"</span>, <span class="at">position =</span> <span class="dv">4</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 9
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+# Nesting:  state (region), year (president)
+  publiccap highway water index      utilities privatecap    gsp labor
+      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;idx&gt;          &lt;dbl&gt;      &lt;dbl&gt;  &lt;int&gt; &lt;dbl&gt;
+1    62201.  26836. 7670. Illi…:1977    27696.    146286. 168627 4656.
+2    63096.  27300. 8005. Illi…:1978    27791.    150855. 173767 4789.
+3    63643.  27247. 8491. Illi…:1979    27904.    156752. 173817 4880 
+# ℹ 813 more rows
+# ℹ 1 more variable: unemp &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<h2 data-number="2.3" id="data-frames-in-wide-format"><span class="header-section-number">2.3</span> Data frames in wide format</h2>
+<p><code>dfidx</code> can deal with data frames in wide format, i.e., for which each series for a given value of the second index is a column of the data frame. This is the case of the <code>munnell_wide</code> tibble that contains two series of the original data set (<code>gsp</code> and <code>unemp</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"munnell_wide"</span>, <span class="at">package =</span> <span class="st">"dfidx"</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>munnell_wide <span class="ot">&lt;-</span> munnell_wide <span class="sc">%&gt;%</span> as_tibble</span></code></pre></div>
+</div>
+<p>Each line is now an American state and, apart the indexes, there are now 34 series with names obtained by the concatenation of the name of the series and the year (for example <code>gsp_1988</code>). In this case a supplementary argument called <code>varying</code> should be provided. It is a vector of integers indicating the position of the columns that should be merged in the resulting long formatted data frame. The <code>stats::reshape</code> function is then used and the <code>sep</code> argument can be also provided to indicate the separating character in the names of the series (the default value being <code>"."</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>munnell_wide <span class="sc">%&gt;%</span> <span class="fu">dfidx</span>(<span class="at">varying =</span> <span class="dv">3</span><span class="sc">:</span><span class="dv">36</span>, <span class="at">sep =</span> <span class="st">"_"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 5
+# Index:    48 (id1) x 17 (id2)
+# Balanced: yes
+  state   region               gsp unemp idx   
+  &lt;chr&gt;   &lt;chr&gt;              &lt;int&gt; &lt;dbl&gt; &lt;idx&gt; 
+1 Alabama East-South Central 28418   4.7 1:1970
+2 Alabama East-South Central 29375   5.2 1:1971
+3 Alabama East-South Central 31303   4.7 1:1972
+# ℹ 813 more rows</code></pre>
+</div>
+</div>
+<p>Better results can be obtained using the <code>idx</code> and <code>idnames</code> previously described:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>munnell_wide <span class="sc">%&gt;%</span> <span class="fu">dfidx</span>(<span class="at">idx =</span> <span class="fu">c</span>(<span class="at">region =</span> <span class="st">"state"</span>), <span class="at">varying =</span> <span class="dv">3</span><span class="sc">:</span><span class="dv">36</span>, </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">sep =</span> <span class="st">"_"</span>, <span class="at">idnames =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="st">"year"</span>))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 3
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+# Nesting:  state (region)
+     gsp unemp idx          
+   &lt;int&gt; &lt;dbl&gt; &lt;idx&gt;        
+1 145792   4.1 Illinois:1970
+2 148503   5.1 Illinois:1971
+3 154413   5.1 Illinois:1972
+# ℹ 813 more rows</code></pre>
+</div>
+</div>
+<h1 data-number="3" id="getting-the-indexes-or-their-names"><span class="header-section-number">3</span> Getting the indexes or their names</h1>
+<p>The name (and the position) of the <code>idx</code> column can be obtained as a named integer (the integer being the position of the column and the name its name) using the <code>idx_name</code> function:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">idx_name</span>(mn)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="do">## idx </span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="do">##   9</span></span></code></pre></div>
+</div>
+<p>To get the name of one of the indexes, the second argument, <code>n</code>, is set either to 1 or 2 to get the first or the second index, ignoring the nesting variables:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">idx_name</span>(mn, <span class="dv">2</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] "year"</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="fu">idx_name</span>(<span class="fu">idx</span>(mn), <span class="dv">2</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] "year"</span></span></code></pre></div>
+</div>
+<p>Not that <code>idx_name</code> can be in this case applied to a <code>dfidx</code> or to a <code>idx</code> object. To get a nesting variable, the third argument, called <code>m</code>, is set to 2:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">idx_name</span>(mn, <span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] "state"</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">idx_name</span>(mn, <span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] "region"</span></span></code></pre></div>
+</div>
+<p>To extract one or all the indexes, the <code>idx</code> function is used. This function has already been encountered when one wants to extract the <code>idx</code> column of a <code>dfidx</code> object. The same <code>n</code> and <code>m</code> arguments as for the <code>idx_name</code> function can be used in order to extract a specific series. For example, to extract the region index, which nests the state index:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>id_index1 <span class="ot">&lt;-</span> <span class="fu">idx</span>(mn, <span class="at">n =</span> <span class="dv">1</span>, <span class="at">m =</span> <span class="dv">2</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>id_index2 <span class="ot">&lt;-</span> <span class="fu">idx</span>(<span class="fu">idx</span>(mn), <span class="at">n =</span> <span class="dv">1</span>, <span class="at">m =</span> <span class="dv">2</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(id_index1)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] "East-North Central" "East-North Central" "East-North Central"</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="do">## [4] "East-North Central" "East-North Central" "East-North Central"</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="fu">identical</span>(id_index1, id_index2)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] TRUE</span></span></code></pre></div>
+</div>
+<h1 data-number="4" id="data-frames-subsetting"><span class="header-section-number">4</span> Data frames subsetting</h1>
+<p>Subsets of data frames are obtained using the <code>[</code> and the <code>[[</code> operators. The former returns most of the time a data frame as the second one always returns a series.</p>
+<h2 data-number="4.1" id="commands-that-return-a-data-frame"><span class="header-section-number">4.1</span> Commands that return a data frame</h2>
+<p>Consider first the use of <code>[</code>. If one argument is provided, it indicates the columns that should be selected. The result is always a data frame, even if a single column is selected. If two arguments are provided, the first one indicates the subset of lines and the second one the subset of columns that should be returned. If only one column is selected, the result depends on the value of the <code>drop</code> argument. If <code>TRUE</code>, a series is returned and if <code>FALSE</code>, a one series data frame is returned. An important difference between tibbles and ordinary data frames is that the default value of <code>drop</code> is <code>FALSE</code> for the former and <code>TRUE</code> for the later. Therefore, with tibbles, the use of <code>[</code> will always by default return a data frame.</p>
+<p>A specific <code>dfidx</code> method is provided for one reason: the column that contains the indexes should be “sticky” (we borrow this idea from the <code>sf</code> package<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>), which means that it should be always returned while using the extractor operator, even if it is not explicitly selected.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>mn[mn<span class="sc">$</span>unemp <span class="sc">&gt;</span> <span class="dv">10</span>, ]</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 46 × 9
+# Index:    19 (state) x 8 (year)
+# Balanced: no
+# Nesting:  state (region), year (president)
+  publiccap highway  water utilities privatecap    gsp labor unemp
+      &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;  &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+1    65064.  27568. 10218     27278.    154806. 159778 4593.    11
+2    64752.  27483  10436.    26833.    157096. 160856 4531.    11
+3    25109.  10619.  3297.    11193.     82361.  64042 2028     12
+# ℹ 43 more rows
+# ℹ 1 more variable: idx &lt;idx&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>mn[mn<span class="sc">$</span>unemp <span class="sc">&gt;</span> <span class="dv">10</span>, <span class="fu">c</span>(<span class="st">"highway"</span>, <span class="st">"utilities"</span>)]</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 46 × 3
+# Index:    19 (state) x 8 (year)
+# Balanced: no
+# Nesting:  state (region), year (president)
+  highway utilities idx          
+    &lt;dbl&gt;     &lt;dbl&gt; &lt;idx&gt;        
+1  27568.    27278. Illinois:1982
+2  27483     26833. Illinois:1983
+3  10619.    11193. Indiana:1982 
+# ℹ 43 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>mn[mn<span class="sc">$</span>unemp <span class="sc">&gt;</span> <span class="dv">10</span>, <span class="st">"highway"</span>]</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 46 × 2
+# Index:    19 (state) x 8 (year)
+# Balanced: no
+# Nesting:  state (region), year (president)
+  highway idx          
+    &lt;dbl&gt; &lt;idx&gt;        
+1  27568. Illinois:1982
+2  27483  Illinois:1983
+3  10619. Indiana:1982 
+# ℹ 43 more rows</code></pre>
+</div>
+</div>
+<p>All the previous commands extract the observations where the unemployment rate is greater than 10% and, in the first case all the series, in the second case two of them and in the third case only one series.</p>
+<h2 data-number="4.2" id="commands-that-return-a-series"><span class="header-section-number">4.2</span> Commands that return a series</h2>
+<p>A series can be extracted using any of the following commands:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>mn1 <span class="ot">&lt;-</span> mn[, <span class="st">"highway"</span>, drop <span class="ot">=</span> <span class="cn">TRUE</span>]</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>mn2 <span class="ot">&lt;-</span> mn[[<span class="st">"highway"</span>]]</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>mn3 <span class="ot">&lt;-</span> mn<span class="sc">$</span>highway</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="fu">identical</span>(mn1, mn2), <span class="fu">identical</span>(mn1, mn3))</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] TRUE TRUE</span></span></code></pre></div>
+</div>
+<p>The result is a <code>xseries</code> which inherits the <code>idx</code> column from the data frame it has been extracted from as an attribute :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>mn1 <span class="sc">%&gt;%</span> <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Index: 
+48 (state) x 17 (year) 
+
+[1] 26835.52 27300.22 27247.22</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(mn1)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "xseries" "numeric"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">idx</span>(mn1) <span class="sc">%&gt;%</span> <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 4
+  state    region             year  president
+  &lt;chr&gt;    &lt;chr&gt;              &lt;fct&gt; &lt;fct&gt;    
+1 Illinois East-North Central 1977  Carter   
+2 Illinois East-North Central 1978  Carter   
+3 Illinois East-North Central 1979  Carter   
+# ℹ 813 more rows</code></pre>
+</div>
+</div>
+<p>Note that, except when <code>dfidx</code> hasn’t been used with <code>drop.index = FALSE</code>, a series which defines the indexes is dropped from the data frame (but is one of the column of the <code>idx</code> column of the data frame). It can be therefore retrieved using:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>mn<span class="sc">$</span>idx<span class="sc">$</span>president <span class="sc">%&gt;%</span> head</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] Carter Carter Carter Carter Ford   Ford  
+Levels: Carter Ford Nixon Reagan</code></pre>
+</div>
+</div>
+<p>or</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">idx</span>(mn)<span class="sc">$</span>president <span class="sc">%&gt;%</span> head</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] Carter Carter Carter Carter Ford   Ford  
+Levels: Carter Ford Nixon Reagan</code></pre>
+</div>
+</div>
+<p>or more simply by applying the <code>$</code> operator as if the series were a stand-alone series in the data frame :</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>mn<span class="sc">$</span>president <span class="sc">%&gt;%</span> <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Index: 
+48 (state) x 17 (year) 
+
+[1] Carter Carter Carter
+Levels: Carter Ford Nixon Reagan</code></pre>
+</div>
+</div>
+<p>In this last case, the resulting series is a <code>xseries</code>, <em>ie</em> it inherits the index data frame as an attribute.</p>
+<h2 data-number="4.3" id="user-defined-class-for-extracted-series"><span class="header-section-number">4.3</span> User defined class for extracted series</h2>
+<p>While creating the <code>dfidx</code>, a <code>pkg</code> argument can be indicated, so that the resulting <code>dfidx</code> object and its series are respectively of class <code>c("dfidx_pkg", "dfidx")</code> and <code>c("xseries_pkg", "xseries")</code> which enables the definition of special methods for <code>dfidx</code> and <code>xseries</code> objects. For example, consider the hypothetical <strong>pnl</strong> package for panel data:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>mn <span class="ot">&lt;-</span> <span class="fu">dfidx</span>(munnell, <span class="at">idx =</span> <span class="fu">c</span>(<span class="at">region =</span> <span class="st">"state"</span>, <span class="at">president =</span> <span class="st">"year"</span>), </span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>                                <span class="at">pkg =</span> <span class="st">"pnl"</span>)</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>mn1 <span class="ot">&lt;-</span> mn<span class="sc">$</span>gsp</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(mn)</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] "dfidx_pnl"  "tbl_dfidx"  "dfidx"      "tbl_df"     "tbl"       </span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a><span class="do">## [6] "data.frame"</span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(mn1)</span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] "xseries_pnl" "xseries"     "integer"</span></span></code></pre></div>
+</div>
+<p>For example, we want to define a <code>lag</code> method for <code>xseries_pnl</code> objects. While lagging there should be a <code>NA</code> not only on the first position of the resulting vector like for time-series, but each time we encounter a new individual. A minimal <code>lag</code> method could therefore be written as:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>lag.xseries_pnl <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...){</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>    .idx <span class="ot">&lt;-</span> <span class="fu">idx</span>(x)</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>    class <span class="ot">&lt;-</span> <span class="fu">class</span>(x)</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> <span class="fu">unclass</span>(x)</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>    id <span class="ot">&lt;-</span> .idx[[<span class="dv">1</span>]]</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>    lgt <span class="ot">&lt;-</span> <span class="fu">length</span>(id)</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>    lagid <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">""</span>, id[<span class="sc">-</span> lgt])</span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>    sameid <span class="ot">&lt;-</span> lagid <span class="sc">==</span>  id</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="cn">NA</span>, x[<span class="sc">-</span> lgt])</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>    x[<span class="sc">!</span> sameid] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">structure</span>(x, <span class="at">class =</span> class, <span class="at">idx =</span> .idx)</span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>lmn1 <span class="ot">&lt;-</span> stats<span class="sc">::</span><span class="fu">lag</span>(mn1)</span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>lmn1 <span class="sc">%&gt;%</span> <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Index: 
+48 (state) x 17 (year) 
+
+[1]     NA 168627 173767</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(lmn1)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "xseries_pnl" "xseries"     "integer"    </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(mn1, lmn1)[, <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>]</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       [,1]   [,2]   [,3]   [,4]   [,5]   [,6]   [,7]   [,8]   [,9]
+mn1  168627 173767 173817 165722 157366 163112 145792 148503 154413
+lmn1     NA 168627 173767 173817 165722 157366 163112 145792 148503
+      [,10]  [,11]  [,12]  [,13]  [,14]  [,15]  [,16]  [,17] [,18]
+mn1  163125 161725 166029 159778 160856 173602 178493 183849 68832
+lmn1 154413 163125 161725 166029 159778 160856 173602 178493    NA
+     [,19] [,20]
+mn1  71717 72047
+lmn1 68832 71717</code></pre>
+</div>
+</div>
+<p>Note the use of <code>stats::lag</code> instead of <code>lag</code> which ensures that the <code>stats::lag</code> function is used, even if the <strong>dplyr</strong> (or <strong>tidyverse</strong>) package is attached.</p>
+<h1 data-number="5" id="tidyverse"><span class="header-section-number">5</span> tidyverse</h1>
+<h2 data-number="5.1" id="dplyr"><span class="header-section-number">5.1</span> dplyr</h2>
+<p><strong>dfidx</strong> supports some of the verbs of <strong>dplyr</strong>, namely, for the current version:</p>
+<ul>
+<li><code>select</code> to select columns,</li>
+<li><code>filter</code> to select some rows using logical conditions,</li>
+<li><code>arrange</code> to sort the lines according to one or several variables,</li>
+<li><code>mutate</code> and <code>transmute</code> for creating new series,</li>
+<li><code>slice</code> to select some rows using their position.</li>
+</ul>
+<p><strong>dplyr</strong>’s verbs don’t work with <code>dfidx</code> objects for two main reasons:</p>
+<ul>
+<li>the first one is that with most of the verbs (<code>select</code> is an exception), the returned object is a <code>data.frame</code> (or a <code>tibble</code>) and not a <code>dfidx</code>,</li>
+<li>the second one is that the index column should be “sticky”, which means that it should be always returned, even while selecting a subset of columns which doesn’t include the index column or while using <code>transmute</code>.</li>
+</ul>
+<p>Therefore, specific methods are provided for <strong>dplyr</strong>’s verb. The general strategy consists on:</p>
+<ol class="example" type="1">
+<li>first save the original attributes of the argument (a <code>dfidx</code> object),</li>
+<li>coerce to a data frame or a tibble using the <code>as.data.frame</code> method,</li>
+<li>use <code>dplyr</code>’s verb,</li>
+<li>add the column containing the index if necessary (i.e., while using <code>transmute</code> or while <code>select</code>ing a subset of columns which doesn’t contain the index column),</li>
+<li>change some of the attributes if necessary,</li>
+<li>attach the attributes to the data frame and returns the result.</li>
+</ol>
+<p>The following code illustrates the use of <strong>dplyr</strong>’s verbs applied to <code>dfidx</code> objects.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(mn, highway, utilities)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 3
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+# Nesting:  state (region), year (president)
+  highway utilities idx          
+    &lt;dbl&gt;     &lt;dbl&gt; &lt;idx&gt;        
+1  26836.    27696. Illinois:1977
+2  27300.    27791. Illinois:1978
+3  27247.    27904. Illinois:1979
+# ℹ 813 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">arrange</span>(mn, <span class="fu">desc</span>(unemp))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 9
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+# Nesting:  state (region), year (president)
+  publiccap highway  water utilities privatecap    gsp labor unemp
+      &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;  &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+1    11079.   7551.   756.     2772.     35933.  20822  582.    18
+2    51956.  19881. 10759.    21316.    115911. 108627 3193.    16
+3    11073.   7562.   809.     2702.     36068.  21615  597.    15
+# ℹ 813 more rows
+# ℹ 1 more variable: idx &lt;idx&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(mn, <span class="at">lgsp =</span> <span class="fu">log</span>(gsp), <span class="at">lgsp2 =</span> lgsp <span class="sc">^</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 11
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+# Nesting:  state (region), year (president)
+  publiccap highway water utilities privatecap    gsp labor unemp
+      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;  &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+1    62201.  26836. 7670.    27696.    146286. 168627 4656.   6.2
+2    63096.  27300. 8005.    27791.    150855. 173767 4789.   6  
+3    63643.  27247. 8491.    27904.    156752. 173817 4880    5.5
+# ℹ 813 more rows
+# ℹ 3 more variables: idx &lt;idx&gt;, lgsp &lt;dbl&gt;, lgsp2 &lt;dbl&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">transmute</span>(mn, <span class="at">lgsp =</span> <span class="fu">log</span>(gsp), <span class="at">lgsp2 =</span> lgsp <span class="sc">^</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 3
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+# Nesting:  state (region), year (president)
+   lgsp lgsp2 idx          
+  &lt;dbl&gt; &lt;dbl&gt; &lt;idx&gt;        
+1  12.0  145. Illinois:1977
+2  12.1  146. Illinois:1978
+3  12.1  146. Illinois:1979
+# ℹ 813 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(mn, unemp <span class="sc">&gt;</span> <span class="dv">10</span>, gsp <span class="sc">&gt;</span> <span class="dv">150000</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 9
+# Index:    1 (state) x 2 (year)
+# Balanced: yes
+# Nesting:  state (region), year (president)
+  publiccap highway  water utilities privatecap    gsp labor unemp
+      &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;  &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+1    65064.  27568. 10218     27278.    154806. 159778 4593.    11
+2    64752.  27483  10436.    26833.    157096. 160856 4531.    11
+# ℹ 1 more variable: idx &lt;idx&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">slice</span>(mn, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 9
+# Index:    1 (state) x 3 (year)
+# Balanced: yes
+# Nesting:  state (region), year (president)
+  publiccap highway water utilities privatecap    gsp labor unemp
+      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;  &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+1    62201.  26836. 7670.    27696.    146286. 168627 4656.   6.2
+2    63096.  27300. 8005.    27791.    150855. 173767 4789.   6  
+3    63643.  27247. 8491.    27904.    156752. 173817 4880    5.5
+# ℹ 1 more variable: idx &lt;idx&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(mn, <span class="at">gsp =</span> <span class="fu">ifelse</span>(gsp <span class="sc">&lt;</span> <span class="dv">170000</span>, <span class="dv">0</span>, gsp))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 816 × 9
+# Index:    48 (state) x 17 (year)
+# Balanced: yes
+# Nesting:  state (region), year (president)
+  publiccap highway water utilities privatecap    gsp labor unemp
+      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1    62201.  26836. 7670.    27696.    146286.      0 4656.   6.2
+2    63096.  27300. 8005.    27791.    150855. 173767 4789.   6  
+3    63643.  27247. 8491.    27904.    156752. 173817 4880    5.5
+# ℹ 813 more rows
+# ℹ 1 more variable: idx &lt;idx&gt;</code></pre>
+</div>
+</div>
+<p>To extract a series, the <code>pull</code> function can be used:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>mn <span class="sc">%&gt;%</span> <span class="fu">pull</span>(utilities)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Index: 
+48 (state) x 17 (year) 
+
+[1] 27695.71 27791.28 27904.24</code></pre>
+</div>
+</div>
+<h1 data-number="6" id="model-building"><span class="header-section-number">6</span> Model building</h1>
+<p>The two main steps in <strong>R</strong> in order to estimate a model are to use the <code>model.frame</code> function to construct a data frame, using a formula and a data frame and then to extract from it the matrix of covariates using the <code>model.matrix</code> function.</p>
+<h2 data-number="6.1" id="model-frame"><span class="header-section-number">6.1</span> Model frame</h2>
+<p>The default method of <code>model.frame</code> has as first two arguments <code>formula</code> and <code>data</code>. It returns a data frame with a <code>terms</code> attribute. Some other methods exist in the <strong>stats</strong> package, for example for <code>lm</code> and <code>glm</code> object with a first and main argument called <code>formula</code>. This is quite unusual and misleading as for most of the generic functions in <strong>R</strong>, the first argument is called either <code>x</code> or <code>object</code>.</p>
+<p>Another noticeable method for <code>model.frame</code> is provided by the <strong>Formula</strong> package and, in this case, the first argument is a <code>Formula</code> object, which is an extended formula which can contain several parts on the left and/or on the right hand side of the formula.</p>
+<p>We provide a <code>model.frame</code> method for <code>dfidx</code> objects, mainly because the <code>idx</code> column should be returned in the resulting data frame. This leads to an unusual order of the arguments, the data frame first and then the formula. The method then first extract (and subset if necessary the <code>idx</code> column), call the <code>formula</code>/<code>Formula</code> method and then add to the resulting data frame the <code>idx</code> column. The resulting data frame is a <code>dfidx</code> object.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>mf_mn <span class="ot">&lt;-</span> mn <span class="sc">%&gt;%</span> <span class="fu">model.frame</span>(gsp <span class="sc">~</span> utilities <span class="sc">+</span> highway <span class="sc">|</span> unemp <span class="sc">|</span> labor,</span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">subset =</span> unemp <span class="sc">&gt;</span> <span class="dv">10</span>)</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>mf_mn</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 46 × 6
+# Index:    19 (state) x 8 (year)
+# Balanced: no
+# Nesting:  state (region), year (president)
+     gsp utilities highway unemp labor idx          
+   &lt;int&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;idx&gt;        
+1 159778    27278.  27568.    11 4593. Illinois:1982
+2 160856    26833.  27483     11 4531. Illinois:1983
+3  64042    11193.  10619.    12 2028  Indiana:1982 
+# ℹ 43 more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">formula</span>(mf_mn)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>gsp ~ utilities + highway + unemp + labor + (state + region + 
+    year + president)
+&lt;environment: 0x64ec783829f8&gt;</code></pre>
+</div>
+</div>
+<p>Note that the column that contains the indexes is at the end and not at the begining of the returned data frame. This is because the <code>stats::model.response</code> function, which is used to extract the response of a model and is not generic consider that the first column of the model frame is the response.</p>
+<h2 data-number="6.2" id="model-matrix"><span class="header-section-number">6.2</span> Model matrix</h2>
+<p><code>model.matrix</code> is a generic function and for the default method, the first two arguments are a <code>terms</code> object and a data frame. In <code>lm</code>, the <code>terms</code> attribute is extracted from the <code>model.frame</code> internally constructed using the <code>model.frame</code> function. This means that, at least in this context, <code>model.matrix</code> doesn’t need a <code>formula</code>/<code>term</code> argument and a <code>data.frame</code>, but only a data frame returned by the model frame method, i.e., a data frame with a <code>terms</code> attribute.</p>
+<p>We use this idea for the <code>model.matrix</code> method for <code>dfidx</code> object; the only required argument is a <code>dfidx</code> returned by the <code>model.frame</code> function. The formula is then extracted from the <code>dfidx</code> and the <code>Formula</code> or default method is then called. The result is a matrix of class <code>dfidx_matrix</code>, with a printing method that allows the use of the <code>n</code> argument:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>mf_mn <span class="sc">%&gt;%</span> <span class="fu">model.matrix</span>(<span class="at">rhs =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span> <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">5</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># [46 x 3]
+  (Intercept) utilities  highway
+1           1  27277.69 27568.50
+2           1  26832.94 27483.00
+3           1  11192.68 10618.71
+4           1  11141.74 10558.11
+5           1  21281.74 19996.38</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>mf_mn <span class="sc">%&gt;%</span> <span class="fu">model.matrix</span>(<span class="at">rhs =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">3</span>) <span class="sc">%&gt;%</span> <span class="fu">print</span>(<span class="at">n =</span> <span class="dv">5</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># [46 x 3]
+  (Intercept) unemp  labor
+1           1    11 4593.3
+2           1    11 4530.6
+3           1    12 2028.0
+4           1    11 2029.5
+5           1    12 3442.8</code></pre>
+</div>
+</div>
+<h1 class="unnumbered" data-number="7" id="references"><span class="header-section-number">7</span> References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-BACH:WICK:22" class="csl-entry" role="doc-biblioentry">
+Bache, Stefan Milton, and Hadley Wickham. 2022. <em><span class="nocase">magrittr</span>: A Forward-Pipe Operator for <span>R</span></em>. <a href="https://CRAN.R-project.org/package=magrittr">https://CRAN.R-project.org/package=magrittr</a>.
+</div>
+<div id="ref-BALT:13" class="csl-entry" role="doc-biblioentry">
+Baltagi, B. H. 2013. <em>Econometric Analysis of Panel Data</em>. 5th ed. John Wiley; Sons ltd.
+</div>
+<div id="ref-MULL:WICK:23" class="csl-entry" role="doc-biblioentry">
+Müller, Kirill, and Hadley Wickham. 2023. <em><span class="nocase">tibble</span>: Simple Data Frames</em>. <a href="https://CRAN.R-project.org/package=tibble">https://CRAN.R-project.org/package=tibble</a>.
+</div>
+<div id="ref-MUNN:90" class="csl-entry" role="doc-biblioentry">
+Munnell, A. 1990. <span>“Why Has Productivity Growth Declined? Productivity and Public Investment.”</span> <em>New England Economic Review</em>, 3–22.
+</div>
+<div id="ref-PEBE:18" class="csl-entry" role="doc-biblioentry">
+Pebesma, Edzer. 2018. <span>“<span class="nocase">Simple Features for R: Standardized Support for Spatial Vector Data</span>.”</span> <em><span>The R Journal</span></em> 10 (1): 439–46. <a href="https://doi.org/10.32614/RJ-2018-009">https://doi.org/10.32614/RJ-2018-009</a>.
+</div>
+<div id="ref-PEBE:BIVA:23" class="csl-entry" role="doc-biblioentry">
+Pebesma, Edzer, and Roger Bivand. 2023. <em><span class="nocase">Spatial Data Science: With applications in R</span></em>. <span>Chapman and Hall/CRC</span>. <a href="https://doi.org/10.1201/9780429459016">https://doi.org/10.1201/9780429459016</a>.
+</div>
+<div id="ref-WICK:FRAN:23" class="csl-entry" role="doc-biblioentry">
+Wickham, Hadley, Romain François, Lionel Henry, Kirill Müller, and Davis Vaughan. 2023. <em><span class="nocase">dplyr</span>: A Grammar of Data Manipulation</em>. <a href="https://CRAN.R-project.org/package=dplyr">https://CRAN.R-project.org/package=dplyr</a>.
+</div>
+</div>
+<section class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1" role="doc-endnote"><p><span class="citation" data-cites="PEBE:BIVA:23">Pebesma and Bivand (2023)</span> and <span class="citation" data-cites="PEBE:18">Pebesma (2018)</span>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+
+
+
+</body></html>

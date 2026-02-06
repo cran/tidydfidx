@@ -4,18 +4,30 @@ author: Yves Croissant
 date: today
 date-format: long
 number-sections: true
-output: 
-  pdf_document:
-    number-sections: true
-  html_document:
-    toc: true
-    toc_float: true
+format: 
+  html:
+    theme: none
+    minimal: true
+    embed-resources: true
+    css: custom.css
 bibliography: ../inst/REFERENCES.bib
 vignette: >
   %\VignetteEncoding{UTF-8}
   %\VignetteIndexEntry{dfidx and tibbles}
-  %\VignetteEngine{quarto::pdf}
+  %\VignetteEngine{quarto::html}
 ---
+
+<!-- output:  -->
+<!--   pdf_document: -->
+<!--     number-sections: true -->
+<!--   html_document: -->
+<!--     toc: true -->
+<!--     toc_float: true -->
+<!-- output: -->
+<!--   rmarkdown::html_vignette: -->
+<!--   toc: true -->
+
+
 
 In some situations, series from a data frame have a natural
 two-dimensional (tabular) representation because each observation can
@@ -41,11 +53,8 @@ instead of **dfidx**.
 
 This vignette supersede the preceding vignette of the **dfidx**
 package by showing the advantages of creating `dfidx` objects from a
-tibble and not from an ordinary data frame.^[The advantage of
-attaching the **dplyr** package [@WICK:FRAN:23] is that the
-**magrittr**'s pipe [@BACH:WICK:22] and functions from the **tibble**
-package [@MULL:WICK:23] are exported.] It also introduces a new vector
-interface to define the indexes.
+tibble and not from an ordinary data frame. It also introduces a new
+vector interface to define the indexes.
 
 
 # Basic use of the `dfidx` function
@@ -55,11 +64,12 @@ The `dfidx` package is loaded using:
 ```{r }
 #| label: setup
 #| include: false
+options(rmarkdown.html_vignette.check_title = FALSE)
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, widht = 50)
 old_options <- options(width = 70,
                        tibble.print_max = 3,
-                       tibble.print_min = 3
-)
+                       tibble.print_min = 3,
+                       dfidx.print_n = 3)
 ```
 
 <!-- ```{r } -->
@@ -78,9 +88,10 @@ old_options <- options(width = 70,
 
 ```{r }
 #| label: load_dfidx
+#| message: false
 library(tidydfidx)
+library(dplyr)
 ```
-
 
 We also attach the **dplyr** package [@WICK:FRAN:23], which exports
 functions from the **tibble** [@MULL:WICK:23] and the **margrittr**
@@ -89,24 +100,18 @@ throughout this vignette tibbles and not ordinary data frames and
 we'll show how **dplyr**'s verbs can be used with `dfidx` objects
 thanks to appropriate methods.
 
-```{r}
-#| label: load_dplyr
-library(dplyr)
-```
-
 To illustrate the features of **dfidx**, we'll use the `munnell` data
-set [@MUNN:90] that is used in @BALT:13's famous book and is part of
-the **plm** package as `Produc`. It contains several economic series
-for American states from 1970 to 1986. We've added to the initial data
-set a `president` series which indicates the name of the American
-president in power for the given year.
+set [@MUNN:90] that is used in @BALT:13' and is part of the **plm**
+package as `Produc`. It contains several economic series for American
+states from 1970 to 1986. We've added to the initial data set a
+`president` series which indicates the name of the American president
+in power for the given year. We convert it to a tibble:
 
 ```{r}
 #| label: print.tibble
 data("munnell", package = "dfidx")
-munnell <- munnell %>% as_tibble
+munnell <- as_tibble(munnell)
 ```
-
 The two indexes are `state` and `year` and both are nested in another
 variable: `state` in `region` and `year` in `president`.  A `dfidx`
 object is created with the `dfidx` function: the first argument should
@@ -144,7 +149,7 @@ index:
 
 ```{r }
 #| label: dfidx_integer
-munnell %>% dfidx(48)
+munnell %>% dfidx(48L)
 ```
 
 Then the two indexes are created with the default names `id1` and
@@ -154,7 +159,7 @@ the `levels` argument.
 
 ```{r }
 #| label: dfidx_integer_pretty
-munnell %>% dfidx(48, idnames = c("state", "year"), levels = 1970:1986)
+munnell %>% dfidx(48L, idnames = c("state", "year"), levels = 1970:1986)
 ```
 
 The `idx` argument can also be a character of length one or two. In
@@ -237,7 +242,6 @@ series (the default value being `"."`).
 
 ```{r}
 #| label: varying
-#| eval: false
 munnell_wide %>% dfidx(varying = 3:36, sep = "_")
 ```
 
@@ -245,7 +249,6 @@ Better results can be obtained using the `idx` and `idnames` previously describe
 
 ```{r}
 #| label: varying_pretty
-#| eval: false
 munnell_wide %>% dfidx(idx = c(region = "state"), varying = 3:36, 
                        sep = "_", idnames = c(NA, "year"))
 ```
@@ -320,10 +323,11 @@ ordinary data frames is that the default value of `drop` is `FALSE`
 for the former and `TRUE` for the later. Therefore, with tibbles, the
 use of `[` will always by default return a data frame. 
 
-A specific `dfidx` method is provided for one reason: the column
-that contains the indexes should be "sticky" (we borrow this idea from
-the `sf` package^[@PEBE:BIVA:23 and @PEBE:18.]), which means that it should be always returned while
-using the extractor operator, even if it is not explicitly selected.
+A specific `dfidx` method is provided for one reason: the column that
+contains the indexes should be "sticky" (we borrow this idea from the
+`sf` package^[@PEBE:BIVA:23 and @PEBE:18.]), which means that it
+should be always returned while using the extractor operator, even if
+it is not explicitly selected.
 
 ```{r}
 #| label: one_bracket
